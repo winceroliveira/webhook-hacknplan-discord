@@ -19,40 +19,31 @@ app.get('/', (req, res) => {
 app.post('/hacknplan-webhook', async (req, res) => {
     const body = req.body;
 
-    console.log("📩 Evento recebido do HacknPlan:", body);
+    console.log("Evento recebido do HacknPlan:", body);
 
-    // Criação da mensagem para o Discord
-    let mensagem = `📌 **Evento HacknPlan** recebido!`;
+    // Pega título da tarefa
+    const titulo = body.Title || "Tarefa sem título";
+    const status = body.Stage?.Status || "sem status";
+    const importancia = body.ImportanceLevel?.Name || "sem importância";
 
-    if (body.Title) {
-        mensagem += `\n📝 **Tarefa**: ${body.Title}`;
-    }
+    // Formata mensagem
+    let mensagem = `📌 **Nova atualização no HacknPlan!**\n`;
+    mensagem += `📝 **Título**: ${titulo}\n`;
+    mensagem += `⚙️ **Status**: ${status}\n`;
+    mensagem += `⭐ **Importância**: ${importancia}`;
 
-    if (body.Category && body.Category.Name) {
-        mensagem += `\n📁 **Categoria**: ${body.Category.Name}`;
-    }
-
-    if (body.ProjectId) {
-        mensagem += `\n🆔 **ID do Projeto**: ${body.ProjectId}`;
-    }
-
-    if (body.WorkItemId) {
-        mensagem += `\n🔢 **ID da Tarefa**: ${body.WorkItemId}`;
-    }
-
-    // Envia a mensagem para o Discord
+    // Envia para Discord
     try {
         await axios.post(DISCORD_WEBHOOK_URL, {
             content: mensagem
         });
-        console.log("✅ Mensagem enviada ao Discord com sucesso.");
     } catch (error) {
-        console.error("❌ Erro ao enviar para o Discord:", error.message);
+        console.error("Erro ao enviar para Discord:", error.message);
     }
 
-    // Sempre responder 200 para o HacknPlan não desativar o webhook
     res.sendStatus(200);
 });
+
 
 // Inicia o servidor
 const PORT = process.env.PORT || 3000;
